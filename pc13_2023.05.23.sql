@@ -817,17 +817,246 @@ SELECT ENAME 사원명, SAL 급여 --방법2
     FROM EMP
     WHERE NOT SAL BETWEEN 400 AND 500;
     
-<9번> 2020년 2월 20일 부터 2022년 12월 31일 사이에 입사한 사원의 이름, 담당업무, 입사일을 출력하시오. -- 왜 안돼?
+<9번> 2020년 2월 20일 부터 2022년 12월 31일 사이에 입사한 사원의 이름, 담당업무, 입사일을 출력하시오.
 SELECT ENAME 사원명, JOB 담당업무, HIREDATE 입사일
     FROM EMP 
     WHERE HIREDATE BETWEEN '20200220' AND '20221231' ;
     
-<10번> 부서번호가 20 및 30에 속한 사원의 이름과 부서번호를 출력, 이름을 기준(내림차순)으로 영문자순으로 출력하시오. --?
-SELECT EMP 사원명, DEPNO 부서번호
+<10번> 부서번호가 20 및 30에 속한 사원의 이름과 부서번호를 출력, 이름을 기준(내림차순)으로 출력하시오.
+SELECT ENAME 사원명, DEPTNO 부서번호
     FROM EMP
-    WHERE  DEPNO BETWEEN  20 AND 30
-    ORDER BY ENAME;
+--  WHERE DEPTNO BETWEEN  20 AND 30
+--  WHERE DEPNO = '20' OR DEPTNO = '30'
+    WHERE DEPNO IN (20,30)  -- 바로 윗줄과 같음  
+    ORDER BY ENAME DESC;
+
+<11번> 사원의 급여가 300에서 600사이에 포함되고 부서번호가 20 또는 30인 사원의
+        이름, 급여와 부서번호를 출력, 이름순(오름차순)으로 출력하시오.
+SELECT ENAME 이름 , SAL 급여, DEPTNO 부서번호
+    FROM EMP
+  WHERE (SAL BETWEEN 300 AND 600) AND (DEPTNO = '20' OR DEPTNO = '30')
+  ORDER BY ENAME ASC;      
+-- WHERE (SAL BETWEEN 400 AND 600) AND DEPTNO IN(20,30);  
+
+SELECT ENAME 이름 , SAL 급여, DEPTNO 부서번호
+    FROM EMP   
+    WHERE (SAL > 300 AND SAL<600)  AND (DEPTNO ='20' OR DEPTNO = '30')
+     ORDER BY ENAME ASC;  -- 아무도 없음
+
+
+<12번> 2021년도에 입사한 사원의 이름과 입사일을 출력하시오. (like 연산자와 와일드카드 사용)
+SELECT ENAME 사원, HIREDATE 입사일
+    FROM EMP
+    WHERE HIREDATE LIKE '%2021%';
+    
+
+<13번>  관리자가 없는 사원의 이름과 담당 업무를 출력하시오.
+SELECT ENAME 사원명, JOB 담당업무
+    FROM EMP 
+    WHERE MGR IS NULL; -- IS NILL, IS NOT NULL : NULL 값인지 아닌지 비교 PPT 246 참고/ MGR : MANAGER
+    
+------------------------------
+
+SELECT ENAME 사원명, JOB 담당업무
+    FROM EMP 
+    WHERE MGR IS NOT NULL;
+
+SELECT ENAME 사원명, JOB 담당업무
+    FROM EMP 
+    WHERE NOT MGR IS NULL; -- 이렇게도 함 !
+
+<14번> 커미션을 받을 수 있는 자격이 되는 사원의 이름, 급여, 커미션을 출력하되 급여 및 커미션을 기준으로 내림차순 정렬하여 표시하시오.
+SELECT ENAME 사원명, SAL 급여, COMM 커미션
+    FROM EMP
+    ORDER BY SAL DESC; -- 급여 및 커미션이라는게 무슨 의미/?
+
+<15번> 이름의 세번째 문자가 우인 사원의 이름을 표시하시오.
+SELECT ENAME 이름
+    FROM EMP
+    WHERE ENAME LIKE '__우';
+    
+<16번> 이름에 "민"와 "김"를 모두 포함하고 있는 사원의 이름을 표시하시오.
+SELECT ENAME 이름
+    FROM EMP
+    WHERE ENAME LIKE '%민%' AND  ENAME LIKE  '%김%';
+
+<17번> 담당업무가 프로그래머, 또는 영업사원이면서 
+    급여가 350, 450 또는 750이 아닌 사원의 이름, 담당업무, 급여를 출력하시오.
+    
+SELECT ENAME 이름, JOB 담당업무, SAL 급여
+    FROM EMP
+    WHERE (JOB = '프로그래머' OR JOB = '영업사원') AND NOT SAL IN(350,450,750);
+
+<18번> 입력된 REMARK 속성에 저장된 영문자를 모두 소문자/대문자/첫자 대문자로 조회하시오.
+SELECT SUBSTR(LOWER(REMARK),1,20)
+FROM EMP;
+
+SELECT SUBSTR(UPPER(REMARK),1,20)
+FROM EMP;
+
+SELECT SUBSTR(INITCAP(REMARK),1,20)
+FROM EMP;
+
+<20번> SUBSTR 함수를 사용하여 사원들의 입사한 년도와 입사한 달만 출력하시오.
+
+SELECT SYSDATE FROM DUAL; -- 이건 오늘 날짜 조회하기
+
+SELECT SUBSTR(HIREDATE,1,4) 입사년도, SUBSTR(HIREDATE,6,2) "입사한 달"
+FROM EMP;
+
+<21번> SUBSTR 함수를 사용하여 4월에 입사한 사원을 출력하시오,
+SELECT EMPNO 사원번호, ENAME 사원명, HIREDATE 입사날짜
+FROM EMP
+WHERE SUBSTR(HIREDATE,6,2) = 04;
+
+<22번> MOD 함수를 사용하여 사원번호가 짝수인 사람만 출력하시오.
+SELECT EMPNO 사원번호, ENAME 사원명
+FROM EMP
+WHERE MOD(EMPNO,2)=0;
+
+SELECT EMPNO 사원번호, ENAME 사원명
+FROM EMP
+WHERE MOD(TO_NUMBER(EMP),2)=0;
+--MOD 함수는 나머지 구하기 함수
+
+<23번> 입사일은 년도는 2자리 (YY), 월은 숫자 (MON)으로 표시하고 요일은 약어(DY)로 지정하여 출력하시오.
+SELECT SUBSTR(HIREDATE,9,2) YY, SUBSTR(HIREDATE, 6,2) MON, TO_CHAR(HIREDATE,'dy')
+FROM EMP;
 
 
 
+-- 요일함수
+-- TO_CHAR("날짜", "포맷")
+-- EX) SELECT TO_CHAR(SYSDATE, 'DAY')FROM DUAL;
+--select to_char(sysdate, 'day') from dual
+----결과 : 화요일
+--;
+--select to_char(sysdate, 'dy') from dual
+----결과 : 화
+--;
+--select to_char(sysdate, 'd') from dual
+----결과 : 3 (1:일, 2:월, 3:화, 4:수, 5:목, 6:금, 7:토)
+--;
+
+
+
+<24번> 올해 며칠이 지났는지 출력하시오. 현재 날짜에서 올해 1월 1일을 뺀 결과를 출력하고
+TO_DATE함수를 사용하여 데이터형을 일치 시키시오.-- 잘 모르겠따!
+
+SELECT * FROM ALL_TABLES;
+SELECT SYSDATE 오늘1, TO_DATE(SYSADATE) 오늘2 FROM ALL_TABLES;
+
+
+SELECT TO_DATE('2023-05-22', 'YYYY-MM-DD') FROM DUAL;
+
+SELECT TO_DATE(SYSDATE)- TO_DATE('2023/01/01', 'YYYY-MM-DD') FROM DUAL;
+SELECT SYSDATE - TO_DATE('2023/01/01', 'YYYY/MM/DD') FROM DUAL;
+
+SELECT *FROM DUAL; -- DUMMY 
+-- 아무의미 없는 값 !
+
+
+SELECT TO_DATE('88/12/11', 'RR/MM/DD') "1900년대", TO_DATE('02/12/11', 'RR/MM/DD') "2000년대" FROM dual;
+
+SELECT ADD_MONTHS(SYSDATE, 3) 삼개월후,
+LAST_DAY(SYSDATE) 금월마지막일,
+NEXT_DAY(SYSDATE, '월요일') 다음주월요일,
+ROUND(MONTHS_BETWEEN(SYSDATE, SYSDATE-100)) ,
+ROUND(MONTHS_BETWEEN( '2023-12-16', SYSDATE)) 남은개월수   
+FROM DUAL;
+
+
+SELECT ROUND((TO_DATE('16:30', 'HH24:MI') - TO_DATE('15:10', 'HH24:MI')) * 24, 1) 시간으로차이계산
+    FROM dual;
+
+SELECT ROUND((TO_DATE('16:30', 'HH24:MI') - TO_DATE('15:10', 'HH24:MI'))*24*60, 1) 분으로시간차이계산
+   FROM dual;
+
+SELECT ROUND((TO_DATE('16:30', 'HH24:MI') - TO_DATE('15:10', 'HH24:MI'))*24*60*60, 1)  초로시간차이계산
+  FROM dual;
+
+SELECT TO_CHAR(SYSDATE, 'YYYY') FROM DUAL;
+SELECT TO_CHAR(SYSDATE, 'YEAR') "현재날짜의 년도" FROM DUAL;
+
+SELECT TO_CHAR(SYSDATE, 'AM', 'NLS_DATE_LANGUAGE=AMERICAN') AS AMERICAN,
+TO_CHAR(SYSDATE,'AM', 'NLS_DATE_LANGUAGE=KOREAN') AS KOREAN FROM DUAL;
+
+SELECT TO_CHAR(TO_DATE('20230523145411', 'YYYYMMDDHH24MISS'), 'YYYYMMDD HH:MI:SS AM') 오전오후
+FROM DUAL;
+
+SELECT TO_CHAR(SYSDATE, 'AD YYYY, CC "세기"')
+FROM DUAL;
+
+<25번> 사원들의 사번, 이름, 상관의 사번을 출력하되 상관이 없는 사원에 대해서는 NULL 값 대신 0으로 출력하시오.
+SELECT EMPNO 사번, ENAME 이름, NVL(MGR,0)상관사번
+FROM EMP;
+--NVL(Null 값인 컬럼, 대체하고 싶은 값)
+
+SELECT EMPNO 사번, ENAME 이름, NVL2(MGR,MGR,'대박')상관사번 -- 문자로도 바뀜
+FROM EMP;
+
+SELECT EMPNO 사번, ENAME 이름, NVL2(MGR,'고참있음','고참없음')상관사번 -- 문자로도 바뀜
+FROM EMP;
+
+<26번> DECODE 함수로 직급에 따라 급여를 인상하도록 하시오. 직급이 '분석가'인 사원은 200,
+'프로그래머'인 사원은 150, '영업사원'인 사원은 130, '관리자'사원 110,
+나머지 기타 사원은 100을 인상하시오.
+SELECT ENAME 이름, JOB 직무, SAL 급여, DECODE(JOB, '분석가', SAL+200, '프로그래머', SAL+150, '영업사원', SAL+130, '관리자', SAL+110) 인상된연봉
+FROM EMP;
+
+SELECT DECODE(9,10,'A',9,'B',8,'C','D')
+FROM DUAL;
+
+SELECT DECODE('승수', '강쥐', 'A', '동물', 'B', '사람' , 'C', 'D')
+FROM DUAL;
+
+-- DECODE 함수 : 데이터베이스에서 조건에 따라 값은 변환하는 함수
+
+<27번> 모든 사원의 급여 최고액, 최저액, 총액 및 평균 급여를 출력하시오. 평균에 대해서는 정수로 반올림하시오.
+SELECT MAX(SAL) 급여최고액, MIN(SAL)급여최저액, SUM(SAL)총액, ROUND(AVG(SAL),0) 평균
+FROM EMP;
+
+UPDATE EMP SET SAL=233 WHERE EMPNO = '7999';
+
+<28번>
+각 담당 업무 유형별로 급여 최고액, 최저액, 총액 및 평균액을 출력하시오.
+평균에 대해서는 정수로 반올림하시오.
+
+SELECT  JOB 담당업무, MAX(SAL) 급여최고액, MIN(SAL)급여최저액, SUM(SAL)총액, ROUND(AVG(SAL),0) 평균
+FROM EMP
+GROUP BY JOB;
+
+<29번> COUNT(*) 함수를 이용하여 담당업무가 동일한 사원 수를 출력하시오.
+SELECT JOB 담당업무, COUNT(*) 사원수
+FROM EMP
+GROUP BY JOB
+ORDER BY COUNT(*) DESC;
+
+<30번> 모든 사원의 급여 최고액, 최저액, 차액을 출력하시오.
+SELECT  MAX(SAL) 최고액, MIN(SAL)최저액,  MAX(SAL)- MIN(SAL) 차액
+FROM EMP; 
+
+<31번> 부서코드 10,20,30인 사원들에 대해 부서 번호별 급여 총액을 각각 출력하시오.
+별칭은 각 부서번호, 부서명, 총액으로 지정하시오.
+
+SELECT A.DEPTNO 부서번호, A.DNAME 부서명, SUM(B.SAL)급여총액
+FROM DEPT A, EMP B
+WHERE (A.DEPTNO = B.DEPTNO) AND A.DEPTNO IN(10,20,30)
+GROUP BY A.DEPTNO, A.DNAME;
+
+--GROUP BY A.DEPTNO; 이건 왜 에러?
+<32번> 
+EQUI 조인을 사용하여 김민욱 사원의 부서번호와 부서 이름을 출력하시오.
+SELECT E.ENAME 사원명, D.DEPTNO 부서번호, D.DNAME 부서이름
+FROM EMP E, DEPT D
+WHERE (E.DEPTNO = D.DEPTNO) AND E.ENAME = '김민욱';
+
+<33번>
+INNER JOIN 과 ON 연산자를 사용해서
+사원 이름과 함께 그 사원이 소속된 부서이름과 지역 명을 출력하시오.
+
+SELECT E.ENAME 사원명, D.DNAME 부서이름, D.LOC 지역명
+FROM EMP E INNER JOIN DEPT D
+ON E.DEPTNO = D.DEPTNO
+ORDER BY D.LOC , E.ENAME;
 
