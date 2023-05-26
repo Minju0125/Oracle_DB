@@ -172,3 +172,30 @@ SELECT DISTINCT(A.ENAME) FROM EMP A, EMP B
 SELECT DEPTNO 부서코드, ENAME 이름, HIREDATE 입사일
 FROM EMP
 WHERE DEPTNO IN (SELECT DEPTNO FROM EMP WHERE ENAME = '김동혁');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
