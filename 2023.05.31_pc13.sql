@@ -1,0 +1,382 @@
+ SELECT MOD(10,3.7), REMAINDER(10,3.7) FROM DUAL;
+ SELECT  FLOOR(1332.69), CEIL(1332.69)  FROM DUAL;
+ 
+ SELECT WIDTH_BUCKET(88,0,100,10) FROM DUAL;
+ SELECT WIDTH_BUCKET(10, 9000, 500, 5) FROM DUAL;
+  
+ SELECT MEM_NAME  회원이름, MEM_BIR 회원생일,  MEM_NAME ||  '님은 ' || TO_CHAR(MEM_BIR,'YYYY"년" MM"월 출생이고 태어난 요일은 " DAY') 
+          FROM MEMBER;
+ 
+ SELECT PROD_LGU, PROD_BUYER, COUNT(*), SUM(PROD_COST)
+ FROM PROD
+ GROUP BY CUBE(PROD_LGU, PROD_BUYER);
+ 
+ SELECT * FROM PROD;
+ 
+ SELECT PROD_LGU
+     , PROD_BUYER
+     , COUNT(*)
+     , SUM(PROD_COST)
+FROM   PROD
+GROUP  BY PROD_LGU, ROLLUP(PROD_BUYER);
+
+--회원 중에 성이 '김' 이고, 성 다음에  '성' 또는 '형' 이 있는 회원을 검색
+
+SELECT MEM_ID 회원ID, MEM_NAME 회원명
+FROM MEMBER
+WHERE REGEXP_LIKE (MEM_NAME, '^김(성|형)');
+
+-- 상품 이름 중에 '삼성' 이라는 말이 있고, 숫자 두 개가 같이 있는 상품의 
+-- 상품코드, 상품명, 판매가를 검색하시오?
+
+SELECT PROD_ID 상품ID, PROD_NAME 상품명
+FROM PROD
+WHERE REGEXP_LIKE (PROD_NAME, '^삼성.*\d\d');
+
+SELECT REGEXP_SUBSTR('Java Flex Oracle', '[^ ]+')
+FROM DUAL;
+
+SELECT MEM_NAME 회원이름 , MEM_MAIL, REGEXP_SUBSTR(MEM_MAIL, '[^@]+') 이메일아이디, REGEXP_SUBSTR(MEM_MAIL, '[^@]+',1,2) 이메일서버
+FROM MEMBER;
+-------
+
+SELECT REGEXP_INSTR('JAVA Flex Oralce', '[ae]') RESULT FROM DUAL; --결과 8 (a나 e가 첫번째 오는 위치 => 8)
+
+SELECT REGEXP_INSTR('JAVA Flex Oracle','[ae]', 1, 1, 0, 'i') RESULT1,
+       REGEXP_INSTR('JAVA Flex Oracle','[ae]', 3, 2, 1, 'i') RESULT2
+       FROM DUAL; --여기서 I는 대소문자를 구별하지 않겠다는 의미
+       
+SELECT REGEXP_REPLACE ('JAVA Flex Oracle', '[^ ]+', 'C++')
+FROM DUAL;
+
+----------------
+SELECT MEM_ID 회원ID, MEM_REGNO1||'-'||MEM_REGNO2 "주민등록번호", MEM_NAME 성명, TO_CHAR(MEM_BIR, 'YYYY-MM-DD') 생일
+FROM MEMBER
+ORDER BY MEM_REGNO1, MEM_REGNO2;
+
+----------------
+SELECT * FROM LPROD;
+SELECT * FROM PROD;
+SELECT * FROM LPROD, PROD;
+SELECT COUNT(*) FROM LPROD, PROD, BUYER;
+
+----
+SELECT BUYER_ID 거래처코드, BUYER_NAME 거래처명, SUM(BUY_QTY * BUY_COST) 매입금액
+FROM BUYPROD, PROD, BUYER
+WHERE BUY_DATE BETWEEN '2020-01-01' AND '2020-01-31'
+AND      BUY_PROD   = PROD_ID
+AND      PROD_BUYER = BUYER_ID
+GROUP BY BUYER_ID, BUYER_NAME 
+ORDER BY BUYER_ID, BUYER_NAME;
+
+SELECT * FROM PROD;
+SELECT * FROM BUYER;
+SELECT * FROM BUYPROD;
+
+------------------------
+CREATE TABLE A
+(NO NUMBER(3) NOT NULL,
+ NAME VARCHAR2(20) NOT NULL,
+ CONSTRAINT PK_A PRIMARY KEY(NO));
+ 
+CREATE TABLE B
+(NO NUMBER(3) NOT NULL,
+ SCORE NUMBER(3) NOT NULL,
+ CONSTRAINT PK_B PRIMARY KEY(NO));
+ 
+INSERT INTO A VALUES(1, '김철수');
+INSERT INTO A VALUES(2, '박미미');
+INSERT INTO A VALUES(3, '정다비');
+INSERT INTO A VALUES(4, '멘토스');
+INSERT INTO A VALUES(5, '박버거');
+
+INSERT INTO B VALUES(1, 60);
+INSERT INTO B VALUES(2, 71);
+INSERT INTO B VALUES(5, 99);
+INSERT INTO B VALUES(7, 100);
+
+
+SELECT * FROM A;
+SELECT * FROM B;
+SELECT * FROM A,B;
+
+--INNER JOIN
+SELECT *
+FROM A INNER JOIN B ON A.NO = B.NO;
+
+SELECT * 
+FROM A,B
+WHERE A.NO = B.NO;
+
+-- OUTER JOIN
+-- 1) LEFT OUTER JOIN -- 왼쪽 테이블 기준으로 JOIN 하겠다. ( 일치되는 값이 없으면 NULL)
+SELECT * FROM A LEFT OUTER JOIN B ON (A.NO = B.NO);
+SELECT * FROM A,B WHERE A.NO = B.NO (+);-- 일반 조인에 (+) 붙이면 아우터 조인
+                                        -- (+)안붙은 테이블이 기준이됨 
+SELECT * FROM A,B WHERE A.NO  (+) = B.NO;
+
+SELECT * FROM A RIGHT OUTER JOIN B ON (A.NO = B.NO);
+
+--3) FULL OUTER JOIN
+--왼쪽 테이블과 오른쪽 테이블의 합집합.
+SELECT * FROM A FULL OUTER JOIN  B ON (A.NO = B.NO);
+
+SELECT * FROM A,B WHERE A.NO = B.NO (+)
+UNION
+SELECT * FROM A,B WHERE A.NO(+)= B.NO ;
+
+---------------------------------------------------------------
+-- 전체상품의 2020년 1월 입고수량을 검색 조회 ( Alias는 상품코드, 상품명, 입고수량 )
+---------------------------------------------------------------
+
+--1. 일반 JOIN
+SELECT P.PROD_ID 상품코드, P.PROD_NAME 상품명, SUM(B.BUY_QTY) 입고수량
+FROM BUYPROD B, PROD P
+WHERE B.BUY_DATE BETWEEN '2020-01-01' AND '2020-01-31'
+AND B.BUY_PROD = P.PROD_ID
+GROUP BY P.PROD_ID, P.PROD_NAME;
+
+SELECT * FROM BUYPROD;
+SELECT * FROM PROD;
+
+--2. OUTER JOIN 
+SELECT P.PROD_ID 상품코드, P.PROD_NAME 상품명, SUM(B.BUY_QTY) 입고수량
+FROM PROD P LEFT OUTER JOIN BUYPROD B ON (B.BUY_PROD = P.PROD_ID)
+WHERE B.BUY_DATE BETWEEN '2020-01-01' AND '2020-01-31'
+AND B.BUY_PROD = P.PROD_ID
+GROUP BY P.PROD_ID, P.PROD_NAME;
+
+--3. ANSI JOIN
+SELECT PROD.PROD_ID 상품코드, PROD.PROD_NAME 상품명, SUM(BUYPROD.BUY_QTY) 입고수량
+FROM PROD LEFT OUTER JOIN BUYPROD
+ON(PROD.PROD_ID = BUYPROD.BUY_PROD AND BUYPROD.BUY_DATE BETWEEN '2020-01-01' AND '2020-01-31')
+GROUP BY PROD.PROD_ID, PROD.PROD_NAME
+ORDER BY PROD.PROD_ID, PROD.PROD_NAME;
+
+--4. OUTER JOIN 사용 확인(NULL값 제거)
+SELECT      PROD.PROD_ID 상품코드
+     ,      PROD.PROD_NAME 상품명
+     ,      SUM( NVL(BUYPROD.buy_qty, 0) ) 입고수량
+FROM        PROD LEFT OUTER JOIN BUYPROD 
+ON          (PROD.PROD_ID = BUYPROD.BUY_PROD
+AND         BUYPROD.BUY_DATE BETWEEN '2020-01-01' AND '2020-01-31' )
+GROUP BY    PROD.PROD_ID
+     ,      PROD.PROD_NAME
+ORDER BY    PROD.PROD_ID
+     ,      PROD.PROD_NAME;
+
+-----------------------------------
+--2020년도에 판매된 상품중에 5회 이상의 판매횟수가 있는 상품 조회
+
+SELECT* FROM CART;
+
+SELECT PROD_ID, PROD_NAME, COUNT(*) 판매횟수
+FROM PROD, CART
+WHERE PROD_ID = CART_PROD AND SUBSTR(CART_NO,1,4) = '2020'
+GROUP BY PROD_ID, PROD_NAME
+HAVING COUNT(*)>=5;
+ 
+ ----------------   
+--  2020년도 판매일자, 판매총액 (5,000,000초과의 경우만),
+--   판매수량(50초과 의 경우만), 판매횟수를  조회하시오.
+--   단, 판매회수가 8개 이상인 판매일자만 조회
+
+SELECT* FROM CART;
+SELECT * FROM PROD;
+
+SELECT SUBSTR(CART_NO,1,8) 판매일, SUM(CART_QTY * PROD_SALE) 판매총액, SUM(CART_QTY) 판매수량, COUNT(*) 판매횟수
+FROM PROD INNER JOIN CART ON (PROD_ID= CART_PROD)
+WHERE CART_NO LIKE '2020%'
+GROUP BY SUBSTR(CART_NO,1,8)
+HAVING SUM(CART_QTY * PROD_SALE) > 5000000 AND SUM(CART_QTY)  >50 AND  COUNT(*) >8
+ORDER BY SUBSTR(CART_NO,1,8);
+
+SELECT   SUBSTR(CART.CART_NO,1,8)            AS "판매일" 
+     ,   SUM(CART.CART_QTY * PROD.PROD_SALE) AS "판매금액"
+     ,   SUM(CART.CART_QTY)                  AS "판매수량"
+     ,   COUNT(*)                            AS "판매횟수"
+FROM     PROD INNER JOIN CART 
+ON       (PROD.PROD_ID = CART.CART_PROD) 
+WHERE    CART.CART_NO LIKE '2020%'
+GROUP BY SUBSTR(CART.CART_NO,1,8) 
+HAVING   SUM(CART.CART_QTY * PROD.PROD_SALE) > 5000000
+AND      SUM(CART.CART_QTY) > 50
+AND      COUNT(*) >= 8
+ORDER BY SUBSTR(CART.CART_NO,1,8);
+
+--------------------------------
+--단일행 조회            
+SELECT * FROM EMP; 
+SELECT * FROM DEPT;
+
+SELECT ENAME, JOB
+FROM EMP
+WHERE EMPNO = (SELECT EMPNO
+            FROM EMP
+            WHERE EMPNO = 7369);
+
+SELECT ENAME, JOB
+FROM EMP
+WHERE JOB = (SELECT JOB
+            FROM EMP
+            WHERE EMPNO = 7369);
+
+SELECT DEPTNO,ENAME, JOB
+FROM EMP
+WHERE DEPTNO = (SELECT DEPTNO
+            FROM EMP
+            WHERE EMPNO = 7369);
+
+----------------------------------
+--다중행
+
+SELECT EMPNO, ENAME, SAL, DEPTNO
+FROM EMP
+WHERE SAL IN (SELECT MAX(SAL) FROM EMP GROUP BY DEPTNO);
+
+SELECT ENAME, SAL, DEPTNO
+FROM EMP
+WHERE DEPTNO !=20
+AND SAL > ANY(SELECT SAL FROM EMP WHERE JOB = '영업사원');
+--여기서 ANY 급여가 (가장 작은) 250 보다 큰 것 반환.
+
+SELECT EMPNO,ENAME, SAL
+FROM EMP E
+WHERE EXISTS (SELECT EMPNO FROM EMP WHERE E.EMPNO = MGR);
+
+-----------------------------------
+-- 다중 열
+
+SELECT EMPNO, SAL, DEPTNO
+FROM EMP
+WHERE(SAL, DEPTNO) IN (SELECT SAL, DEPTNO
+            FROM EMP
+            WHERE DEPTNO = 30
+            AND COMM IS NOT NULL);
+
+-- 급여가 20부서의 평균 급여보다 크고 사원을 관리하는 사원으로서 
+-- 20부서에 속하지 않은 사원의 정보를 보여주는 SQL 문
+
+SELECT b.empno,b.ename,b.job,b.sal, b.deptno
+FROM (SELECT empno
+        FROM emp WHERE sal >(SELECT AVG(sal)
+                                FROM emp
+                                WHERE deptno = 20)) a, 
+    emp b
+WHERE a.empno = b.empno
+  AND b.mgr is NOT NULL
+  AND b.deptno != 20;
+  
+-------------------------------------------------------------------------------
+CREATE TABLE REMAIN -- 재고테이블
+    (REMAIN_YEAR CHAR(40) NOT NULL,
+    REMAIN_PROD     VARCHAR2(10) NOT NULL,
+    REMAIN_J_00 NUMBER(5), -- 전년 재고
+    REMAIN_I NUMBER(5), --입고 INPUT
+    REMAIN_O NUMBER(5), -- 출고 
+    REMAIN_J_99 NUMBER(5), --현재고
+    REMAIN_DATE DATE,
+    CONSTRAINT PK_REMAIN PRIMARY KEY(REMAIN_YEAR, REMAIN_PROD),
+    CONSTRAINT FR_REMAIN_PROD FOREIGN KEY(REMAIN_PROD)
+                            REFERENCES PROD(PROD_ID)
+                            );
+                            
+SELECT * FROM REMAIN;                          
+Column 값에 Null 값을 지정하는 방법
+-Insert 문장에 Column List에서 생략
+-Insert 문장의 Value 절에서 Null 또는 빈공백('')으로 지정
+
+INSERT INTO REMAIN(REMAIN_YEAR, REMAIN_PROD, REMAIN_J_00, REMAIN_I, REMAIN_O, REMAIN_J_99, REMAIN_DATE)
+VALUES ('2003','P101000002',11,7,6,12,'2004-01-02');
+
+INSERT INTO REMAIN(REMAIN_YEAR, REMAIN_PROD, REMAIN_J_00, REMAIN_I, REMAIN_O, REMAIN_J_99, REMAIN_DATE)
+VALUES ('2003','P101000001',20,10,12,18,'2004-01-01');
+
+INSERT INTO REMAIN (REMAIN_YEAR, REMAIN_PROD, REMAIN_I)
+VALUES('2003', 'P102000007', 10);
+
+INSERT INTO REMAIN(REMAIN_YEAR, REMAIN_PROD, REMAIN_J_00, REMAIN_I, REMAIN_O, REMAIN_J_99, REMAIN_DATE)
+VALUES ('2003','P102000001',31,21,NULL,41,'2003-12-31');
+
+INSERT INTO REMAIN(REMAIN_YEAR, REMAIN_PROD, REMAIN_J_00, REMAIN_I, REMAIN_O, REMAIN_J_99, REMAIN_DATE)
+VALUES ('2003','P102000002',31,21,NULL,41,'2003-12-31');
+
+SELECT * FROM REMAIN;
+SELECT * FROM PROD;
+
+
+INSERT INTO REMAIN(REMAIN_YEAR, REMAIN_PROD, REMAIN_J_00, REMAIN_I, REMAIN_O, REMAIN_J_99, REMAIN_DATE)
+SELECT '2004', PROD_ID, TO_NUMBER(SUBSTR(PROD_ID,-2),10,7,TO_NUMBER(SUBSTR(PROD_ID,-2))+10-7,,SYSDATE) FROM PROD;
+
+SELECT REMAIN_YEAR 연도, REMAIN_PROD 상품번호, REMAIN_J_00 전년재고, REMAIN_I 입고, REMAIN_O  출고,
+        REMAIN_J_00 + REMAIN_I - REMAIN_O 현재고, REMAIN_J_99 현재고2
+        FROM REMAIN;
+
+--지정컬럼 복사
+INSERT INTO 목적지테이블 (컬럼명1, 컬럼명2, 컬럼명3)
+SELECT 컬럼명1, 컬럼명2, 컬럼명3;
+
+------
+SELECT MEM_ID 회원ID, MEM_JOB 직업, MEM_LIKE 휴대폰
+FROM MEMBER
+WHERE MEM_ID = 'a001';
+
+select * from member where mem_id = 'a001';
+
+UPDATE MEMBER
+SET MEM_JOB = '군인', MEM_LIKE = '독서'
+WHERE MEM_ID = 'a001';
+
+----------------------------
+--1. 상품 모두의 2020 년도 판매수량을 합산하여 상품 테이블의 총 판매수량 Column 갱신
+SELECT * FROM PROD;
+
+--1) 상품테이블의 총 판매수량 조회
+SELECT   PROD_ID                  AS "상품코드"
+     ,   SUM(NVL(PROD_QTYSALE,0)) AS "총판매수량"  
+FROM     PROD
+GROUP BY PROD_ID;
+
+-----------------------------------
+-- REMAIN 테이블을 그대로 복사해서, REMAIN2 테이블로.
+
+CREATE   TABLE REMAIN2 
+AS 
+SELECT * FROM  REMAIN; 
+
+REMAIN2 테이블 조회
+SELECT * FROM  REMAIN2;
+
+-------------------------------------
+DELETE FROM REMAIN2;
+ROLLBACK; --> DELETE을 이용한 삭제. 롤백 가능
+
+TRUNCATE TABLE REMAIN2;
+ROLLBACK; --> TRUNCATE를 이용한 삭제. 롤백 불가능
+
+DROP TABLE REMAIN2;
+ROLLBACK; --> ROLLBACK을 이용한 테이블 삭제. 롤백 불가능
+
+---------------------------------------
+
+SELECT * FROM MEMBER;
+SELECT * FROM CART;
+
+-- 장바구니 2020년도 5월 자료 중 회원 ID=p001 (오성순)인 자료 조회
+SELECT MEM_ID 회원번호, MEM_NAME 회원이름, CART_NO, CART_PROD, CART_MEMBER, CART_QTY
+FROM MEMBER, CART
+WHERE MEM_ID  = 'p001' AND CART_NO LIKE '202005%' AND CART_MEMBER = MEM_ID;
+
+--재고수불 테이블에서 2003년도 자료 중  입고수량 +출고수량이 
+--   20개 이상인 자료를 삭제 하시오 ?
+--   (조건이 있으므로 WHERE조건에 AND 사용 )
+
+--1조회
+SELECT REMAIN_YEAR 연도, REMAIN_PROD 상품, REMAIN_I 입고량, REMAIN_O 출고량, REMAIN_I + REMAIN_O 합계수량
+FROM REMAIN
+WHERE REMAIN_YEAR = '2003'
+AND (NVL(REMAIN_I, 0) + NVL(REMAIN_O, 0)) >= 20;
+
+
+
+
